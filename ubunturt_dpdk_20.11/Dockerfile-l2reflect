@@ -1,0 +1,49 @@
+# Author Kangwarn
+FROM library/ubuntu:20.04
+
+# Install tornado library.
+RUN apt-get update
+RUN apt-get -y install build-essential
+# RUN apt-get -y install linux-image-5.11.0-46-lowlatency linux-modules-5.11.0-46-lowlatency linux-headers-5.11.0-46-lowlatency linux-tools-5.11.0-46-lowlatency linux-headers-5.11.0-46-lowlatency linux-cloud-tools-5.11.0-46-lowlatency linux-buildinfo-5.11.0-46-lowlatency linux-hwe-5.11-source-5.11.0 rt-tests tuned
+RUN apt-get -y install linux-headers-5.11.0-46-lowlatency rt-tests wget git meson ninja-build lshw pciutils
+
+# RUN tdnf -y install gcc meson git wget numactl make curl \
+#   python3-pip python3-devel unzip zip gzip build-essential zlib-devel \
+#   libbpf-devel libbpf libpcap-devel libpcap libmlx5 libhugetlbfs \
+#   libhugetlbfs-devel nmap-ncat tcpdump kexec-tools libnuma-devel libnuma \
+#   nasm linux-drivers-gpu elfutils-libelf-devel vim pciutils iproute \
+#   lshw findutils vim-extra cmake linux-rt-devel
+
+# Stage one we build first ipsec mb lib
+WORKDIR /root/
+RUN mkdir build
+
+# Stage two we build DPKD LTS
+WORKDIR /root/build
+RUN wget http://fast.dpdk.org/rel/dpdk-20.11.3.tar.xz
+RUN tar xf dpdk*
+WORKDIR /root/build/dpdk-stable-20.11.3
+# Patch DPDK
+RUN wget -O /root/build/l2reflect.patch https://patches.dpdk.org/project/dpdk/patch/20200915083836.18805-3-felix.moessbauer@siemens.com/raw/
+RUN git apply /root/build/l2reflect.patch
+RUN meson -Ddisable_drivers=net/af_xdp -Denable_kmods=true -Duse_hpet=true -Dexamples=all build
+RUN ninja -C build
+WORKDIR /root/build/dpdk-stable-20.11.3/build
+RUN ninja install
+
+# Get the igb_uio DPDK driver
+WORKDIR /root/build
+RUN git clone http://dpdk.org/git/dpdk-kmods
+WORKDIR /root/build/dpdk-kmods/linux/igb_uio
+RUN make
+
+# Stage three we build rt cyclictest and other tools from kernel.org 
+# WORKDIR /root/build
+# RUN git clone git://git.kernel.org/pub/scm/utils/rt-tests/rt-tests.git
+# WORKDIR /root/build/rt-tests
+# ENV PATH="/root/build/rt-tests:${PATH}"
+# RUN make; make install; pip3 install click matplotlib hdrhistogram hdr_plot
+# COPY ["utils.py", "cyclictest-plot-80us", "cyclictest-hist-to-percentiles", "cycle-test-auto", "run-cyclic-test", "./"]
+
+# CMD ["ldconfig; /bin/bash"]
+
