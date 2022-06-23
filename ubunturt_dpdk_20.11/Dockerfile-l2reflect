@@ -5,7 +5,7 @@ FROM library/ubuntu:20.04
 RUN apt-get update
 RUN apt-get -y install build-essential
 # RUN apt-get -y install linux-image-5.11.0-46-lowlatency linux-modules-5.11.0-46-lowlatency linux-headers-5.11.0-46-lowlatency linux-tools-5.11.0-46-lowlatency linux-headers-5.11.0-46-lowlatency linux-cloud-tools-5.11.0-46-lowlatency linux-buildinfo-5.11.0-46-lowlatency linux-hwe-5.11-source-5.11.0 rt-tests tuned
-RUN apt-get -y install linux-headers-5.11.0-46-lowlatency linux-modules-5.11.0-46-lowlatency rt-tests wget git meson ninja-build lshw pciutils kmod
+RUN apt-get -y install linux-headers-5.11.0-46-lowlatency linux-modules-5.11.0-46-lowlatency rt-tests wget git meson ninja-build lshw pciutils kmod iproute2
 
 # RUN tdnf -y install gcc meson git wget numactl make curl \
 #   python3-pip python3-devel unzip zip gzip build-essential zlib-devel \
